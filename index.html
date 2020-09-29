@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+
+<link href="/css/reset.css" th:href="@{/css/reset.css}" rel="stylesheet" />
+<link href="/css/style.css" th:href="@{/css/style.css}" rel="stylesheet" />
+
+<title>商品検索｜grapes</title>
+</head>
+<body>
+
+<header th:insert="fragments/page_header::pageHeader"></header>
+
+<main>
+
+	<div class="container">
+		<form name="searchForm" action="/grapes/searchItem"> 
+			カテゴリ
+			<select name="category" id="category">
+				<option value="0" ></option>
+				<option 
+					th:each="category: ${categorys}"
+					th:selected="${selected == category.id }"
+					th:value="${category.id}"
+					th:text="${category.categoryName}">
+				</option>
+			</select>
+			商品名（部分一致）
+			<input type="text" name="keywords" th:value="${keywords}"/>
+			<button type="submit">検索</button>
+		</form>
+		
+		<div class="noData" th:if="${products == null || products.size() == 0}">
+			<p class="info">検索結果はありません。</p>
+		</div>
+		
+		<table class="top" th:if="${products != null && products.size() > 0}">
+			<tr>
+				<th>画像</th><th>商品名</th><th>価格(円)</th><th>個数</th><th>カート</th>
+			</tr>
+			<tr th:each="item: ${products}">
+				<td class="image">
+					<a href="/grapes/product/" th:href="@{/grapes/product/{id}(id=${item.id})}">
+				 		<img class="itemImage" th:src="@{{imagePath} (imagePath=${item.imageFullPath}) }"  />
+				 	</a>
+				</td>
+				<td>
+					<a href="/grapes/product/" th:href="@{/grapes/product/{id}(id=${item.id})}">
+						<label	th:text="${item.productName}" ></label>
+					</a>
+				</td>
+				<td class="number" th:text="${item.price}" />
+				<td class="componentTd">
+					<input type="number" id="productCount" class="count number" name="productCount" value="0" min="0" step="1"/>
+					<input type="hidden" id="productId" name="productId" th:value="${item.id}"/>
+				</td>
+				<td class="componentTd"><button class="cartButton">追加</button></td>
+			</tr>
+		</table>
+	</div>
+</main>
+
+<script>
+$(() => {
+	//cartButtonを押したら、addCartイベントが発生
+	$('.cartButton').on('click', addCart);
+});
+
+let addCart = (event) => {
+	//イベントターゲットの親要素の親要素であるtr（行）を変数として宣言
+	let tr = $(event.target).parent().parent();
+	//trの孫要素であるproductIdの値を取得し、変数「productId」に代入
+	let productId = $(tr).find('#productId').val();
+	//trの孫要素であるproductCountの値を取得し、変数「productCount」に代入
+	let productCount = $(tr).find('#productCount').val();
+	
+	//productCountが0のとき、alertを表示
+	if (productCount == 0) {
+		alert("個数が0です。");
+		return ;	
+	}
+	//tableで選択されたproductIdとproductCountの値をscriptで宣言した変数に代入し、/grapes/cart/addに送っている
+	location.replace(`/grapes/cart/add?productId=${productId}&productCount=${productCount}`);
+}
+</script>
+
+</body>
+</html>

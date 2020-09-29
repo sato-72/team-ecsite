@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.co.internous.grapes.model.mapper.MstProductMapper">
+<!-- カテゴリー選択、検索ワード入力or未入力の場合 -->
+<!-- 評価条件はcategory AND (keyword OR keyword) -->
+	<select id="findByCategoryIdAndProductName" resultType="jp.co.internous.grapes.model.domain.MstProduct">
+		SELECT * FROM mst_product
+		WHERE category_id =#{category} AND
+		<!-- keywordsを処理の対象とし、keywordを要素を格納する変数とする -->
+		<foreach item="keyword" collection="keywords" open="(" close=")" separator=""  index="idx">
+			<choose>
+			<!-- 0番目のキーワードの場合 -->
+				<when test="idx == 0">
+					(product_name LIKE '%${keyword}%') 
+				</when>
+				<!-- 1番目以降のキーワードの場合 -->
+				<otherwise>
+					OR (product_name LIKE '%${keyword}%') 
+				</otherwise>
+			</choose>
+		</foreach>
+		<!-- idを基準にソートを行う -->
+		ORDER BY id;
+	</select>
+	
+	<!-- カテゴリー未選択、検索ワード入力の場合 -->
+	<!-- 評価条件はkeyword OR keyword -->
+	<select id="findByProductName" resultType="jp.co.internous.grapes.model.domain.MstProduct">
+		SELECT * FROM mst_product
+		<!-- keywordsを処理の対象とし、keywordを要素を格納する変数とする -->
+		<foreach item="keyword" collection="keywords" open="" close="" separator="" index="idx">
+			<choose>
+			<!-- 0番目のキーワードの場合 -->
+				<when test="idx == 0">
+					WHERE (product_name LIKE '%${keyword}%')
+				</when>
+				<!-- 1番目以降のキーワードの場合 -->
+				<otherwise>
+					OR (product_name LIKE '%${keyword}%')
+				</otherwise>
+			</choose>
+		</foreach>
+		<!-- idを基準にソートを行う -->
+		ORDER BY id;
+	</select>
+</mapper>
